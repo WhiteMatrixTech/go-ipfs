@@ -197,10 +197,21 @@ NOTE: For security reasons, this command will omit your private key and remote s
 		}
 
 		var cfg map[string]interface{}
-		err = json.Unmarshal(data, &cfg)
-		if err != nil {
-			return err
+
+		if os.Getenv("ADDRESSES_GATEWAY_EXT") != "" {
+			var cfgStruct config.Config
+			err = json.Unmarshal(data, &cfgStruct)
+			if err != nil {
+				return err
+			}
+			cfgStruct.Addresses.Gateway = config.Strings{os.Getenv("ADDRESSES_GATEWAY_EXT")}
+			if os.Getenv("ADDRESSES_API_EXT") != "" {
+				cfgStruct.Addresses.API = config.Strings{os.Getenv("ADDRESSES_API_EXT")}
+			}
+			data, _ = json.Marshal(cfgStruct)
 		}
+
+		_ = json.Unmarshal(data, &cfg)
 
 		cfg, err = scrubValue(cfg, []string{config.IdentityTag, config.PrivKeyTag})
 		if err != nil {
